@@ -1,105 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-void main() {
-  runApp(const MaterialApp(
+void main(){
+  runApp(MaterialApp(
+    home: Expense(),
     debugShowCheckedModeBanner: false,
-    home: ExpenseApp(),
   ));
 }
-
-// -------------------- MAIN WIDGET --------------------
-class ExpenseApp extends StatefulWidget {
-  const ExpenseApp({super.key});
-
+class Expense extends StatefulWidget {
+  const Expense({super.key});
   @override
-  State<ExpenseApp> createState() => _ExpenseAppState();
+  State<Expense> createState() => _ExpenseState();
 }
-
-// -------------------- STATE CLASS --------------------
-class _ExpenseAppState extends State<ExpenseApp> {
-  final TextEditingController _catCtrl = TextEditingController();
-  final TextEditingController _amtCtrl = TextEditingController();
-  final List<Map<String, dynamic>> _data = [];
-
-  final List<Color> _colors = [
+class _ExpenseState extends State<Expense>{
+  final TextEditingController catCtrl = TextEditingController();
+  final TextEditingController amtCtrl = TextEditingController();
+  final List<Map<String, dynamic>> data = [];
+  final List<Color> colors = [
     Colors.red,
-    Colors.green,
     Colors.blue,
+    Colors.green,
     Colors.orange,
     Colors.purple,
-    Colors.teal
+    Colors.yellow,
+    Colors.pink,
   ];
-
-  void _addExpense() {
-    final String category = _catCtrl.text.trim();
-    final double? amount = double.tryParse(_amtCtrl.text.trim());
-
-    if (category.isNotEmpty && amount != null) {
-      setState(() {
-        _data.add({
+  void addExpense(){
+    final String category = catCtrl.text.trim();
+    final double? amt = double.tryParse(amtCtrl.text.trim());
+    if( category.isNotEmpty && amt != null){
+      setState((){
+        data.add({
           'cat': category,
-          'amt': amount,
-          'clr': _colors[_data.length % _colors.length],
+          'amt': amt,
+          'clr': colors[data.length % colors.length],
         });
-        _catCtrl.clear();
-        _amtCtrl.clear();
       });
     }
+    catCtrl.clear();
+    amtCtrl.clear();
   }
-
-  @override
+  @override   
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Expense Tracker'),
-        centerTitle: true,
+        title: const Text('Expense Tracker'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // --- Input Fields ---
-            TextField(
-              controller: _catCtrl,
-              decoration: InputDecoration(labelText: 'Category'),
-            ),
-            TextField(
-              controller: _amtCtrl,
-              decoration: InputDecoration(labelText: 'Amount'),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _addExpense,
-              child: Text('Add Expense'),
-            ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: catCtrl,
+            decoration: InputDecoration(labelText: 'category'),
+          ),
+          SizedBox(height: 10,),
+          TextField(
+            controller: amtCtrl,
+            decoration: InputDecoration(labelText: 'amount'),
+            keyboardType: TextInputType.number,
+          ),
+          SizedBox(height: 10,),
+          ElevatedButton(
+            onPressed: () => addExpense(),
+            child: Text('Add Expense'),
+          ),
+          SizedBox(height: 20,),
+          Expanded(
+            child:  PieChart(
+                    PieChartData(
+                      sections: data.map((e) => PieChartSectionData(
+                        color: e['clr'],
+                        value: e['amt'],
+                        title: e['cat'],
+                        radius: 50,
+                        titleStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )).toList()
+                    )
+                  ),
+          )
 
-            SizedBox(height: 20),
-
-            // --- Pie Chart ---
-            Expanded(
-              child: _data.isEmpty
-                  ? Center(child: Text('No expenses added yet'))
-                  : PieChart(
-                      PieChartData(
-                        sections: _data.map((e) => PieChartSectionData(
-                                value: e['amt'],
-                                color: e['clr'],
-                                title: e['cat'],
-                                radius: 60,
-                                titleStyle: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                            .toList(),         //---------------------------------------------------------------
-                      ),
-                    ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
